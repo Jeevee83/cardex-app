@@ -23,6 +23,9 @@
         .energy-Colorless { background-color: #94a3b8; }
         .energy-Darkness { background-color: #1e293b; }
         .energy-Metal { background-color: #64748b; }
+
+        /* Smooth Scroll */
+        html { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="text-slate-200 font-sans">
@@ -33,7 +36,7 @@
             <div class="flex flex-col lg:flex-row justify-between items-center gap-8">
                 <div>
                     <h1 class="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">Cardex <span class="text-blue-500">PRO</span></h1>
-                    <p class="text-xs font-bold text-slate-400 tracking-[0.4em] uppercase mt-3">Ultimate Management System</p>
+                    <p class="text-xs font-bold text-slate-400 tracking-[0.4em] uppercase mt-3">Ultimate Management System - by Jeevee83</p>
                 </div>
                 
                 <div class="flex flex-col gap-4 w-full lg:w-auto">
@@ -64,15 +67,15 @@
                     <div v-for="card in filteredCards" :key="card.id" 
                          class="bg-[#1e293b] rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition-all duration-500 group flex flex-col h-full relative shadow-xl overflow-hidden">
                         
-                        <!-- Card Image -->
                         <div class="relative p-4 bg-black/20 flex-grow flex items-center justify-center cursor-pointer" @click="showDetails(card)">
                             <img :src="card.image_url" class="max-h-full rounded-xl group-hover:scale-105 transition duration-700" loading="lazy">
-                            <div class="absolute top-6 left-6 bg-black/60 backdrop-blur-md text-[8px] font-black px-2 py-1 rounded text-blue-400 uppercase tracking-widest">
+                            <!-- Colored Category Badge -->
+                            <div :class="['absolute top-6 left-6 bg-black/60 backdrop-blur-md text-[8px] font-black px-2 py-1 rounded uppercase tracking-widest', 
+                                card.category === 'Pokémon' ? 'text-green-400' : card.category === 'Trainer' ? 'text-blue-400' : 'text-yellow-400']">
                                 {{ card.category }}
                             </div>
                         </div>
 
-                        <!-- Card Info -->
                         <div class="p-6 text-center">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-[10px] font-bold text-slate-500">#{{ card.number }}</span>
@@ -80,23 +83,26 @@
                             </div>
                             <h4 class="font-black text-sm text-white uppercase tracking-tight truncate mb-4">{{ card.name }}</h4>
                             <div class="grid grid-cols-2 gap-3">
-                                <button @click="addToExport(card)" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black py-3 rounded-xl transition uppercase tracking-widest shadow-lg">Add</button>
-                                <button @click="showDetails(card)" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black py-3 rounded-xl transition uppercase tracking-widest">Details</button>
+                                <button @click="addToExport(card)" class="bg-blue-600 hover:bg-blue-500 text-white text-[9px] font-black py-3 rounded-xl transition uppercase tracking-widest shadow-lg">Add</button>
+                                <button @click="showDetails(card)" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[9px] font-black py-3 rounded-xl transition uppercase tracking-widest">Details</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
 
-            <!-- QUEUE (Stessa logica di prima) -->
+            <!-- QUEUE -->
             <aside class="lg:col-span-3">
                 <div class="bg-[#1e293b] rounded-[2.5rem] border border-slate-700 shadow-2xl sticky top-10 flex flex-col h-[85vh]">
-                    <div class="p-8 border-b border-slate-800 flex justify-between items-center">
-                        <h2 class="text-2xl font-black text-white uppercase italic">Queue <span class="text-blue-500">[{{ exportList.length }}]</span></h2>
-                        <button @click="exportCSV" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-xl" :disabled="exportList.length === 0">CSV</button>
+                    <div class="p-8 border-b border-slate-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-2xl font-black text-white uppercase italic">Queue <span class="text-blue-500">[{{ exportList.length }}]</span></h2>
+                            <button @click="exportCSV" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-xl transition" :disabled="exportList.length === 0">CSV</button>
+                        </div>
+                        <button v-if="exportList.length > 0" @click="clearQueue" class="text-[10px] font-black text-red-400 hover:text-red-600 uppercase underline tracking-widest transition">Clear Queue</button>
                     </div>
                     <div class="custom-scroll overflow-y-auto p-6 space-y-4 flex-grow">
-                        <div v-for="(item, index) in exportList" :key="index" class="bg-slate-900/50 p-5 rounded-3xl border border-slate-800 relative group">
+                        <div v-for="(item, index) in exportList" :key="index" class="bg-slate-900/50 p-5 rounded-3xl border border-slate-800 relative group animate-in slide-in-from-right">
                             <button @click="removeFromExport(index)" class="absolute top-4 right-4 text-slate-500 hover:text-red-500 font-bold">✕</button>
                             <p class="font-black text-xs text-blue-400 mb-4 uppercase">{{ item.name }}</p>
                             <div class="space-y-3">
@@ -107,7 +113,18 @@
                                     <select v-model="item.selectedCondition" class="w-full bg-[#0f172a] border border-slate-700 p-2 rounded-xl text-[10px] font-black outline-none">
                                         <option>MINT</option><option>Near Mint</option><option>Lightly Played</option><option>Played</option><option>Poor</option>
                                     </select>
-                                    <input v-model="item.price" type="number" class="w-full bg-[#0f172a] border border-slate-700 p-2 rounded-xl font-black text-[10px] text-green-400 outline-none">
+                                    <div class="relative">
+                                        <span class="absolute left-2 top-2 text-[8px] font-black text-slate-600 uppercase">CHF</span>
+                                        <input v-model="item.price" type="number" class="w-full bg-[#0f172a] border border-slate-700 p-2 pl-8 rounded-xl font-black text-[10px] text-green-400 outline-none">
+                                    </div>
+                                </div>
+                                <div class="bg-black/20 p-2 rounded-xl flex items-center justify-between">
+                                    <span class="text-[9px] font-black text-slate-600 uppercase ml-2">Qty</span>
+                                    <div class="flex items-center gap-3">
+                                        <button @click="item.qty > 1 ? item.qty-- : null" class="text-slate-500">-</button>
+                                        <span class="text-xs font-black text-blue-400">{{ item.qty }}</span>
+                                        <button @click="item.qty++" class="text-blue-500">+</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -116,18 +133,24 @@
             </aside>
         </div>
 
-        <!-- MODAL DETAILS (THE ULTIMATE POKEDEX) -->
+        <!-- BACK TO TOP BUTTON -->
+        <button v-show="showScrollTop" @click="scrollToTop" 
+                class="fixed bottom-8 left-8 z-50 bg-blue-600/40 hover:bg-blue-600 text-white p-4 rounded-full shadow-2xl transition-all backdrop-blur-sm border border-white/10 active:scale-90">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                <path d="M5 15l7-7 7 7"/>
+            </svg>
+        </button>
+
+        <!-- MODAL DETAILS -->
         <div v-if="selectedCard" class="fixed inset-0 modal-overlay z-[100] flex items-center justify-center p-4 md:p-8" @click.self="selectedCard = null">
             <div class="bg-[#1e293b] rounded-[3.5rem] max-w-6xl w-full max-h-[92vh] overflow-hidden flex flex-col md:flex-row shadow-2xl border border-slate-700 relative animate-in zoom-in duration-300">
                 
                 <button @click="selectedCard = null" class="absolute top-8 right-8 z-50 text-slate-500 hover:text-white text-4xl transition font-bold">✕</button>
 
-                <!-- Left: Image -->
                 <div class="md:w-1/2 bg-[#080e1e] p-12 flex items-center justify-center border-r border-slate-800">
                     <img :src="selectedCard.image_url" class="max-h-full drop-shadow-[0_30px_60px_rgba(0,0,0,0.8)] rounded-xl scale-110">
                 </div>
                 
-                <!-- Right: Full Mechanics -->
                 <div class="md:w-1/2 flex flex-col bg-[#1e293b]">
                     <div class="flex-grow overflow-y-auto p-12 pb-6 custom-scroll">
                         <header class="mb-8">
@@ -139,13 +162,11 @@
                             <p v-if="selectedCard.hp && selectedCard.hp !== 'N/A'" class="text-red-500 font-black text-3xl mt-2 tracking-tighter">{{ selectedCard.hp }} HP</p>
                         </header>
 
-                        <!-- Technical Grid -->
                         <div class="grid grid-cols-2 gap-y-8 gap-x-6 border-y border-slate-800 py-8 mb-8">
                             <div v-for="(val, label) in {Rarity: selectedCard.rarity, Illustrator: selectedCard.illustrator, Retreat: selectedCard.retreatCost}" :key="label">
                                 <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{{ label }}</p>
                                 <p class="font-black text-sm text-slate-200 uppercase tracking-tight">{{ val }}</p>
                             </div>
-                            <!-- Weakness/Resistance with Icons -->
                             <div v-if="selectedCard.weaknesses && selectedCard.weaknesses.length > 0">
                                 <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Weakness</p>
                                 <div class="flex gap-2">
@@ -160,7 +181,6 @@
                             </div>
                         </div>
 
-                        <!-- Abilities (Pokémon Power) -->
                         <div v-if="selectedCard.abilities && selectedCard.abilities.length > 0" class="mb-10">
                             <div v-for="abi in selectedCard.abilities" :key="abi.name" class="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl">
                                 <p class="text-red-500 font-black uppercase text-xs tracking-widest mb-2">{{ abi.type }}</p>
@@ -169,7 +189,6 @@
                             </div>
                         </div>
 
-                        <!-- Attacks -->
                         <div v-if="selectedCard.attacks && selectedCard.attacks.length > 0" class="space-y-6 mb-10">
                             <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest font-black">Attacks & Abilities</p>
                             <div v-for="atk in selectedCard.attacks" :key="atk.name" class="bg-[#0f172a] p-6 rounded-3xl border border-slate-800 shadow-inner">
@@ -184,7 +203,6 @@
                             </div>
                         </div>
 
-                        <!-- Rules (Trainer/Energy Text) -->
                         <div v-if="selectedCard.rules && selectedCard.rules.length > 0" class="space-y-4 mb-10">
                             <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest font-black">Card Text</p>
                             <div class="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 italic text-sm text-slate-300 leading-relaxed">
@@ -192,7 +210,6 @@
                             </div>
                         </div>
 
-                        <!-- Flavor Text -->
                         <div v-if="selectedCard.flavorText" class="bg-black/40 p-6 rounded-2xl border border-slate-800 italic text-xs text-slate-500 leading-relaxed mb-10">
                             "{{ selectedCard.flavorText }}"
                         </div>
@@ -213,7 +230,8 @@
                     availableSets: [
                         { id: 'base-set', name: 'Base Set', vendor: 'Wizards of the Coast' }
                     ],
-                    cards: [], exportList: [], searchQuery: '', selectedSet: 'base-set', activeType: 'All', loading: true, selectedCard: null
+                    cards: [], exportList: [], searchQuery: '', selectedSet: 'base-set', activeType: 'All', loading: true, selectedCard: null,
+                    showScrollTop: false
                 }
             },
             watch: { exportList: { handler(newList) { localStorage.setItem('cardex_pro_queue', JSON.stringify(newList)); }, deep: true } },
@@ -231,6 +249,10 @@
                 this.loadData();
                 const saved = localStorage.getItem('cardex_pro_queue');
                 if (saved) this.exportList = JSON.parse(saved);
+                window.addEventListener('scroll', this.handleScroll);
+            },
+            unmounted() {
+                window.removeEventListener('scroll', this.handleScroll);
             },
             methods: {
                 async loadData() {
@@ -240,6 +262,12 @@
                         const response = await fetch(url);
                         this.cards = await response.json();
                     } catch (e) { console.error(e); } finally { this.loading = false; }
+                },
+                handleScroll() {
+                    this.showScrollTop = window.scrollY > 400;
+                },
+                scrollToTop() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
                 showDetails(card) { this.selectedCard = card; },
                 addToExport(card) {
